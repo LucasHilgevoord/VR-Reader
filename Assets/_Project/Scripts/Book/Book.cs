@@ -53,11 +53,11 @@ public class Book : MonoBehaviour
         _currentPage = Mathf.Clamp(_currentPage, 0, _numberOfPages);
 
         // Scale the book
-        _spineWidth = _pageThickness * _numberOfPages;
+        _spineWidth = _pageThickness * _numberOfPages + _chaffThickness;
 
         _topChaff.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
         _bottomChaff.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
-        _spine.localScale = new Vector3(_bookSize.y + _spineSizeMargin, _chaffThickness + _spineSizeMargin, _spineWidth + _chaffThickness);
+        _spine.localScale = new Vector3(_bookSize.y + _spineSizeMargin, _chaffThickness + _spineSizeMargin, _spineWidth);
 
         _topPivit.localPosition = new Vector3(0, 0, -_spineWidth);
         _topChaff.localPosition = new Vector3(0, 0, -_bookSize.x / 2);
@@ -90,7 +90,7 @@ public class Book : MonoBehaviour
         _topPivit.localRotation = Quaternion.Euler(Mathf.Lerp(-90, 90, _openPercentage - (pageProgression / 2)), 0, 0);
 
         // Rotate the top pivit on the x axis between -270 and -180 based on what the currentpage progression is with the number of pages in the book
-        _top.localRotation = Quaternion.Euler(Mathf.Lerp(-270, -180, pageProgression), 0, 0);
+        _top.localRotation = Quaternion.Euler(Mathf.Lerp(-270, -180, pageProgression * _openPercentage), 0, 0);
     }
 
 }
