@@ -21,6 +21,7 @@ public class Book : MonoBehaviour
 
     [Header("Pages")]
     [SerializeField] private Transform _bottomPages, _topPages;
+    [SerializeField] private MeshRenderer _bottomRend, _topRend;
     [SerializeField] private float _pageThickness = 0.01f;
     [SerializeField] private int _numberOfPages = 10;
     [SerializeField] private int _currentPage = 0;
@@ -46,6 +47,9 @@ public class Book : MonoBehaviour
 
     private void OnValidate()
     {
+        if (_bottomRend == null) { _bottomRend = _bottomPages.GetComponent<MeshRenderer>(); }
+        if (_topRend == null) { _topRend = _topPages.GetComponent<MeshRenderer>(); }
+
         // Cap the number of pages
         if (_numberOfPages < 1) { _numberOfPages = 1; }
 
@@ -66,24 +70,12 @@ public class Book : MonoBehaviour
 
         _bottomPages.localScale = new Vector3(_bookSize.y, _pageThickness * (_numberOfPages - _currentPage), _bookSize.x - _chaffThickness);
         _bottomPages.localPosition = new Vector3(0, _bottomPages.localScale.y / 2 + _chaffThickness / 2, 0);
-        if (_bottomPages.localScale.y == 0) 
-        { 
-            _bottomPages.gameObject.SetActive(false); 
-        } else if (!_bottomPages.gameObject.activeSelf)
-        {
-            _bottomPages.gameObject.SetActive(true);
-        }
+        _bottomRend.enabled = _bottomPages.localScale.y == 0 ? false : true;
 
         _topPages.localScale = new Vector3(_bookSize.y, _pageThickness * _currentPage, _bookSize.x - _chaffThickness);
         _topPages.localPosition = new Vector3(0, -_topPages.localScale.y / 2 - _chaffThickness / 2, -_bookSize.x / 2);
-        if (_topPages.localScale.y == 0)
-        {
-            _topPages.gameObject.SetActive(false);
-        }
-        else if (!_topPages.gameObject.activeSelf)
-        {
-            _topPages.gameObject.SetActive(true);
-        }
+        _topRend.enabled = _topPages.localScale.y == 0 ? false : true;
+
 
         // Open the top chaff to the assigned openPercentage
         float pageProgression = (float)_currentPage / _numberOfPages;
