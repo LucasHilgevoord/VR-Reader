@@ -37,14 +37,14 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _SideSmoothness: 0.39
+    - _SideSmoothness: 0.69
     - _a: 0.711
     - _chaffOffset: -0.51
     - _chaffSmoothnes: 0.28
     - _chaffSmoothness: 0.19
     - _curveHeight_a: 0.937
     - _curveOffsetX: -0.15
-    - _curveWidth_i: 0.499
+    - _curveWidth_i: 0.462
     - _d: 2.5
     - _i: 1
     - _multiplier: 0.51
@@ -53,7 +53,7 @@ Material:
     - _sideOffset: 0.65
     - _smoething: -0.02
     - _t: 0.13
-    - _w: 1.56
+    - _w: 2.19
     - _xFlip: 0
     - _xOffset: -0.15
     m_Colors:
