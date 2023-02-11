@@ -12,6 +12,7 @@ public class Book : MonoBehaviour
 
     [Range(0, 1)]
     [SerializeField] private float _openPercentage = 0f;
+    [SerializeField] private bool _forceOpen;
 
     [Header("Chaff")]
     [SerializeField] private Transform _top;
@@ -79,10 +80,10 @@ public class Book : MonoBehaviour
 
         // Open the top chaff to the assigned openPercentage
         float pageProgression = (float)_currentPage / _numberOfPages;
-        _topPivit.localRotation = Quaternion.Euler(Mathf.Lerp(-90, 90, _openPercentage - (pageProgression / 2)), 0, 0);
+        _topPivit.localRotation = Quaternion.Euler(Mathf.Lerp(-90, 90, _openPercentage - ((_forceOpen ? 1 : pageProgression) / 2)), 0, 0);
 
         // Rotate the top pivit on the x axis between -270 and -180 based on what the currentpage progression is with the number of pages in the book
-        _top.localRotation = Quaternion.Euler(Mathf.Lerp(-270, -180, pageProgression * _openPercentage), 0, 0);
+        _top.localRotation = Quaternion.Euler(Mathf.Lerp(-270, -180, (_forceOpen ? 1 : pageProgression) * _openPercentage), 0, 0);
     }
 
 }
