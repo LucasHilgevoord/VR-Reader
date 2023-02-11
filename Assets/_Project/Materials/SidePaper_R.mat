@@ -37,15 +37,25 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _SideSmoothness: 0.39
     - _a: 0.711
+    - _chaffOffset: -0.51
+    - _chaffSmoothnes: 0.01
+    - _chaffSmoothness: 0.19
+    - _curveHeight_a: 0.937
+    - _curveOffsetX: -0.15
+    - _curveWidth_i: 0.499
     - _d: 2.5
     - _i: 1
-    - _multiplier: 0.66
-    - _q: 1.42
-    - _t: 0.146
-    - _w: 2.07
+    - _multiplier: 0.51
+    - _progress_d: 1
+    - _q: -1.66
+    - _sideOffset: 0.65
+    - _smoething: -0.02
+    - _t: 0.13
+    - _w: 1.56
     - _xFlip: 1
-    - _xOffset: -0.18
+    - _xOffset: -0.15
     m_Colors:
     - _PaperColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
