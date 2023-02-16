@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Book : MonoBehaviour
+public enum ContentType
 {
-    public BookData bookData;
+    Image,
+    Text,
+    PDF
 }
