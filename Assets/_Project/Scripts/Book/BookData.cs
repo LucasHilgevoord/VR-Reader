@@ -10,6 +10,7 @@ public class BookData : ScriptableObject
     public string author;
     public string description;
     public ContentType contentType;
+    public int totalPages;
     
     [ShowIf("contentType", ContentType.Image)]
     public ImageContent imageContent = new ImageContent();
@@ -30,6 +31,7 @@ public class BookData : ScriptableObject
         {
             case ContentType.Image:
                 imageContent.UpdateContent();
+                totalPages = imageContent.contentTextures.Length;
                 break;
             case ContentType.Text:
                 break;

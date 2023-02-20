@@ -16,9 +16,13 @@ MonoBehaviour:
   author: DEFAULT-AUTHOR
   description: DEFAULT-DESC
   contentType: 0
+  totalPages: 6
   imageContent:
-    ImageFolderPath: TestStory_00
+    ImageFolderPath: PlaceHolderStory
     contentTextures:
-    - {fileID: 2800000, guid: 5ada6f7685abd3d4abfb7728c7daf26a, type: 3}
-    - {fileID: 2800000, guid: 369c763d2eab6ae42bf1729d5c89c2a6, type: 3}
-    - {fileID: 2800000, guid: cb0c35d968c9d814497f5d5f449514dd, type: 3}
+    - {fileID: 2800000, guid: 43017277c56617a4e9a0b6aaaa092e2a, type: 3}
+    - {fileID: 2800000, guid: 8a898b7891ecd4a45884ee5c36f14d63, type: 3}
+    - {fileID: 2800000, guid: 7061f2cad6c195f48baf026ed283a50a, type: 3}
+    - {fileID: 2800000, guid: 3b3e641ddcb47b544a402b5139ff2784, type: 3}
+    - {fileID: 2800000, guid: 70f3ee5623ccbf24bacfbd2d2d3f6393, type: 3}
+    - {fileID: 2800000, guid: 63f1cae66a6dfad4eac255e8fa932eb6, type: 3}

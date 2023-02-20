@@ -33,7 +33,7 @@ public class BookObject : MonoBehaviour
     [SerializeField] private Transform _bottomPages, _topPages;
     [SerializeField] private MeshRenderer _bottomRend, _topRend;
     [SerializeField] private float _pageThickness = 0.01f;
-    [SerializeField] private int _numberOfPages = 10;
+    [SerializeField] private int _totalPages = 10;
     [SerializeField] private int _currentPage = 0;
 
     internal void SetPageTexture(PageType type, Texture2D tex)
@@ -59,19 +59,14 @@ public class BookObject : MonoBehaviour
         Debug.Log("Set Texture");
     }
 
-    private void OnValidate()
+    internal void SetOpenPercentage(float value) { _openPercentage = value; }
+    internal void SetCurrentPage(int page) { _currentPage = page; }
+    internal void SetTotalPages(int total) { _totalPages = total; }
+
+    internal void UpdateBook()
     {
-        if (_bottomRend == null) { _bottomRend = _bottomPages.GetComponent<MeshRenderer>(); }
-        if (_topRend == null) { _topRend = _topPages.GetComponent<MeshRenderer>(); }
-
-        // Cap the number of pages
-        if (_numberOfPages < 1) { _numberOfPages = 1; }
-
-        // Cap the currentPage
-        _currentPage = Mathf.Clamp(_currentPage, 0, _numberOfPages);
-
         // Scale the book
-        _spineWidth = _pageThickness * _numberOfPages + _chaffThickness;
+        _spineWidth = _pageThickness * _totalPages + _chaffThickness;
 
         _topChaff.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
         _bottomChaff.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
@@ -82,17 +77,17 @@ public class BookObject : MonoBehaviour
         _bottomPivit.localPosition = new Vector3(0, 0, -_bookSize.x / 2);
         _spine.localPosition = new Vector3(0, 0, -_spineWidth / 2);
 
-        _bottomPages.localScale = new Vector3(_bookSize.y, _pageThickness * (_numberOfPages - _currentPage), _bookSize.x - _chaffThickness);
+        _bottomPages.localScale = new Vector3(_bookSize.y, _pageThickness * (_totalPages - _currentPage), _bookSize.x - _chaffThickness);
         _bottomPages.localPosition = new Vector3(0, _bottomPages.localScale.y / 2 + _chaffThickness / 2, 0);
-        _bottomRend.enabled = _bottomPages.localScale.y == 0 ? false : true;
+        _bottomRend.enabled = _currentPage != _totalPages - 1;
 
         _topPages.localScale = new Vector3(_bookSize.y, _pageThickness * _currentPage, _bookSize.x - _chaffThickness);
         _topPages.localPosition = new Vector3(0, -_topPages.localScale.y / 2 - _chaffThickness / 2, -_bookSize.x / 2);
-        _topRend.enabled = _topPages.localScale.y == 0 ? false : true;
+        _topRend.enabled = _currentPage != 0;
 
 
         // Open the top chaff to the assigned openPercentage
-        float pageProgression = (float)_currentPage / _numberOfPages;
+        float pageProgression = (float)_currentPage / _totalPages;
         float xPivitLerp = Mathf.Lerp(-90, 90, _openPercentage - (_forceOpen ? 1 : pageProgression));
         _topPivit.localRotation = Quaternion.Euler(xPivitLerp, 0, 0);
 
@@ -100,8 +95,23 @@ public class BookObject : MonoBehaviour
         float xLerp = Mathf.Lerp(-270, -180, (_forceOpen ? 1 : (pageProgression)) * (_openPercentage * 2));
         _top.localRotation = Quaternion.Euler(xLerp, 0, 0);
 
+        _topPages.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_progress_d", pageProgression * _openPercentage);
+    }
 
-        _topPages.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_progress_d", pageProgression);
+    private void OnValidate()
+    {
+        //if (!Application.isEditor || Application.isPlaying) { return; }
+
+        if (_bottomRend == null) { _bottomRend = _bottomPages.GetComponent<MeshRenderer>(); }
+        if (_topRend == null) { _topRend = _topPages.GetComponent<MeshRenderer>(); }
+
+        // Cap the number of pages
+        if (_totalPages < 1) { _totalPages = 1; }
+
+        // Cap the currentPage
+        _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages - 1);
+
+        UpdateBook();
     }
 
 }
