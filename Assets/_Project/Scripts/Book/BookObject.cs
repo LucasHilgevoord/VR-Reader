@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+public enum PageType
+{
+    LeftPage,
+    RightPage,
+    LeftFlip,
+    RightFlip
+}
+
 public class BookObject : MonoBehaviour
 {
     [Header("Book")]
@@ -28,22 +36,27 @@ public class BookObject : MonoBehaviour
     [SerializeField] private int _numberOfPages = 10;
     [SerializeField] private int _currentPage = 0;
 
-
-    // Start is called before the first frame update
-    void Start()
+    internal void SetPageTexture(PageType type, Texture2D tex)
     {
-        
-    }
+        MeshRenderer obj = null;
+        switch (type)
+        {
+            case PageType.LeftPage:
+                obj = _topRend;
+                break;
+            case PageType.RightPage:
+                obj = _bottomRend;
+                break;
+            case PageType.LeftFlip:
+                break;
+            case PageType.RightFlip:
+                break;
+            default:
+                break;
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    private void OpenBook() 
-    {
-        
+        obj.material.SetTexture("_PaperTexture", tex);
+        Debug.Log("Set Texture");
     }
 
     private void OnValidate()

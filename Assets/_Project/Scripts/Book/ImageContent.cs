@@ -12,11 +12,13 @@ public class ImageContent
     [FolderPath(ParentFolder = ParentFolderPath)]
     public string ImageFolderPath;
 
-    public Texture2D[] contentSprites;
+    public Texture2D[] contentTextures;
+    internal Sprite[] contentSprites;
     
     internal void UpdateContent()
     {
         Debug.Log("Update Content");
+        // TODO: Check if something has changed in the content.
 
         // Check if the file path exists
         string fullPath = $"{Application.dataPath}/Resources/{ParentFolderPath + ImageFolderPath}";
@@ -33,18 +35,20 @@ public class ImageContent
         {
             images[i] = (Texture2D)loadedImages[i];
         }
-        contentSprites = images;
-        //ConvertToSprite(images);
+        contentTextures = images;
     }
 
-    //private void ConvertToSprite(Texture2D[] images)
-    //{
-    //    contentSprites = new Sprite[images.Length];
-    //    Vector2 center = new Vector2(0.5f, 0.5f);
-    //    for (int i = 0; i < images.Length; i++)
-    //    {
-    //        Texture2D tex = images[i];
-    //        contentSprites[i] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), center, 100);
-    //    }
-    //}
+    internal void ConvertToSprite()
+    {
+        if (contentTextures.Length < 0)
+            throw new Exception("No textures have been found");
+
+        contentSprites = new Sprite[contentTextures.Length];
+        Vector2 center = new Vector2(0.5f, 0.5f);
+        for (int i = 0; i < contentTextures.Length; i++)
+        {
+            Texture2D tex = contentTextures[i];
+            contentSprites[i] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), center, 100);
+        }
+    }
 }

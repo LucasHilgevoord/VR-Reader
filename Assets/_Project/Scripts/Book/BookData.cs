@@ -9,22 +9,19 @@ public class BookData : ScriptableObject
     public string title;
     public string author;
     public string description;
-
     public ContentType contentType;
     
     [ShowIf("contentType", ContentType.Image)]
     public ImageContent imageContent = new ImageContent();
 
     [Button(ButtonSizes.Medium), GUIColor(0.4f, 0.8f, 1)]
-    private void RefreshContent()
-    {
-        UpdateContent();
-    }
+    private void RefreshContent() { UpdateContent(); }
 
 
     public void OnValidate()
     {
-        UpdateContent();
+        if (Application.isPlaying || !Application.isEditor) return;
+        RefreshContent();
     }
 
     private void UpdateContent()
