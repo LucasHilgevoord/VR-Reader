@@ -52,7 +52,7 @@ Material:
     - _d: 2.5
     - _i: 1
     - _multiplier: 0.51
-    - _progress_d: 0.5
+    - _progress_d: 0.45
     - _q: -1.66
     - _sideOffset: 0.65
     - _smoething: -0.02

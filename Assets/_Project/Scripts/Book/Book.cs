@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,6 +43,11 @@ public class Book : MonoBehaviour
         bookObject.SetOpenPercentage(value: 0);
         bookObject.SetTotalPages(bookData.totalPages);
         UpdateBook();
+    }
+
+    internal void OpenBook()
+    {
+        
     }
 
     private void UpdateBook()
