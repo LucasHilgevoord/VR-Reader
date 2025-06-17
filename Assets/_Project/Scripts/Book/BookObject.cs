@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public enum PageType
 {
@@ -19,21 +16,22 @@ public class BookObject : MonoBehaviour
     private float _spineWidth;// = 0.2f;
     private float _spineSizeMargin = 0.001f;
 
-    [Range(0, 1)]
-    [SerializeField] private float _openPercentage = 0f;
-    [SerializeField] private bool _forceOpen;
-
     [Header("Chaff")]
     [SerializeField] private Transform _top;
     [SerializeField] private Transform _bottomPivit, _topPivit, _flipPivit;
     [SerializeField] private Transform _topCover, _bottomCover;
-    [SerializeField] private Transform _spine;
+    [SerializeField] private Transform _spine, _spine_left_pivit, _spine_right_pivit;
 
     [Header("Pages")]
     [SerializeField] private Transform _bottomPages, _topPages, _flipPaper;
     [SerializeField] private MeshRenderer _bottomRend, _topRend, _flipRend;
     [SerializeField] private float _pageThickness = 0.01f;
-    [SerializeField] private int _totalPages = 10;
+
+    [Header("Progrssion")]
+    [Range(0, 1)]
+    [SerializeField] private float _openPercentage = 0f;
+    [SerializeField] private bool _forceOpen;
+    [SerializeField] private int _totalPages = 100;
     [SerializeField] private int _currentPage = 0;
 
     internal void SetPageTexture(PageType type, Texture2D tex)
@@ -65,56 +63,57 @@ public class BookObject : MonoBehaviour
 
     internal void UpdateBook()
     {
-        float widthOffset = -_bookSize.x / 2;
-        float progression = (_totalPages / (float)_currentPage);
+        float widthOffset = -_bookSize.x / 2f;
+        float progression = Mathf.Clamp01((float)_currentPage / _totalPages);
+        float readProgression = (2f * progression) - 1f;
 
-        // Scale the book
-        _spineWidth = _pageThickness * _totalPages + _chaffThickness;
+        _spineWidth = (_pageThickness * _totalPages + _chaffThickness) / 2f;
 
-        // Apply the assigned scale to the book
+        UpdateSpine(readProgression);
+        UpdateCovers(widthOffset);
+        UpdatePageStacks(widthOffset);
+        UpdateFlipPage(-widthOffset);
+    }
+
+    private void UpdateSpine(float readProgression)
+    {
+        _spine.localScale = new Vector3(_bookSize.y + _spineSizeMargin, _chaffThickness + _spineSizeMargin, _spineWidth * 2f);
+        _spine.localRotation = Quaternion.Euler(90f * readProgression, 0f, 0f);
+        _spine.localPosition = new Vector3(0f, 0f, _spineWidth * readProgression);
+    }
+
+    private void UpdateCovers(float widthOffset)
+    {
         _topCover.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
         _bottomCover.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
-        _spine.localScale = new Vector3(_bookSize.y + _spineSizeMargin, _chaffThickness + _spineSizeMargin, _spineWidth);
 
-        // Position the pivits
-        _topPivit.localPosition = new Vector3(0, 0, -_spineWidth);
-        _bottomPivit.localPosition = new Vector3(0, 0, 0);
-        _flipPivit.localPosition = new Vector3(0, 0, _spineWidth + (_spineWidth / -progression));
+        _topCover.localPosition = new Vector3(0f, 0f, widthOffset);
+        _topPivit.position = _spine_left_pivit.position;
 
-        // Position the covers
-        _topCover.localPosition = new Vector3(0, 0, widthOffset);
-        _bottomCover.localPosition = new Vector3(0, 0, widthOffset);
-        _spine.localPosition = new Vector3(0, 0, -_spineWidth / 2);
-
-        // Set the position of the Right Side Pages
-        _bottomPages.localScale = new Vector3(_bookSize.y, _pageThickness * (_totalPages - _currentPage), _bookSize.x - _chaffThickness);
-        _bottomPages.localPosition = new Vector3(0, _bottomPages.localScale.y / 2 + _chaffThickness / 2, widthOffset);
-        _bottomRend.enabled = _currentPage != _totalPages - 1;
-
-        // Set the position of the Left Side Pages
-        _topPages.localScale = new Vector3(_bookSize.y, _pageThickness * _currentPage, _bookSize.x - _chaffThickness);
-        _topPages.localPosition = new Vector3(0, -_topPages.localScale.y / 2 - _chaffThickness / 2, widthOffset);
-        _topRend.enabled = _currentPage != 0;
-
-        // Set the position of the flip Page
-        _flipPaper.localPosition = new Vector3(0, 0, -widthOffset);
-
-        // Open the top chaff to the assigned openPercentage
-        float pageProgression = (float)_currentPage / _totalPages;
-
-        if (_currentPage <= _totalPages / 2)
-        {
-            float xPivitLerp = Mathf.Lerp(-90, 90, _openPercentage - (_forceOpen ? 1 : pageProgression));
-            _topPivit.localRotation = Quaternion.Euler(xPivitLerp, 0, 0);
-        }
-
-
-        // Rotate the top pivit on the x axis between -270 and -180 based on what the currentpage progression is with the number of pages in the book
-        float xLerp = Mathf.Lerp(-270, -180, (_forceOpen ? 1 : (pageProgression)) * (_openPercentage * 2));
-        _top.localRotation = Quaternion.Euler(xLerp, 0, 0);
-
-        _topPages.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_progress_d", pageProgression * _openPercentage);
+        _bottomCover.localPosition = new Vector3(0f, 0f, widthOffset);
+        _bottomPivit.position = _spine_right_pivit.position;
     }
+
+    private void UpdatePageStacks(float widthOffset)
+    {
+        // Right Side (Bottom Pages)
+        float rightHeight = _pageThickness * (_totalPages - _currentPage);
+        _bottomPages.localScale = new Vector3(_bookSize.y, rightHeight, _bookSize.x - _chaffThickness);
+        _bottomPages.localPosition = new Vector3(0f, rightHeight / 2f + _chaffThickness / 2f, widthOffset);
+        _bottomRend.enabled = _currentPage != _totalPages;
+
+        // Left Side (Top Pages)
+        float leftHeight = _pageThickness * _currentPage;
+        _topPages.localScale = new Vector3(_bookSize.y, leftHeight, _bookSize.x - _chaffThickness);
+        _topPages.localPosition = new Vector3(0f, -leftHeight / 2f - _chaffThickness / 2f, widthOffset);
+        _topRend.enabled = _currentPage != 0;
+    }
+
+    private void UpdateFlipPage(float positionZ)
+    {
+        _flipPaper.localPosition = new Vector3(0f, 0f, positionZ);
+    }
+
 
     private void OnValidate()
     {
@@ -127,7 +126,7 @@ public class BookObject : MonoBehaviour
         if (_totalPages < 1) { _totalPages = 1; }
 
         // Cap the currentPage
-        _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages - 1);
+        _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages);
 
         UpdateBook();
     }
