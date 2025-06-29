@@ -24,14 +24,15 @@ public class BookObject : MonoBehaviour
     [SerializeField] private Transform _spine, _spine_left_pivit, _spine_right_pivit;
 
     [Header("Pages")]
-    [SerializeField] private Transform _bottomPages, _topPages, _flipPaper;
-    [SerializeField] private MeshRenderer _bottomRend, _topRend, _flipRend;
     [SerializeField] private float _pageThickness = 0.01f;
+    [SerializeField] private Transform _bottomPageStack, _topPageStack;
+    [SerializeField] private Transform _bottomFlipPagePivitTracker, _topFlipPagePivitTracker;
+    [SerializeField] private Transform _bottomFlipPageParent, _topFlipPageParent;
+    [SerializeField] private MeshRenderer _bottomPageStackRend, _topPageStackRend;
 
     [Header("Progression")]
     [Range(0, 1)]
     [SerializeField] private float _openPercentage = 0f;
-    [SerializeField] private bool _forceOpen;
     [SerializeField] private int _totalPages = 100;
     [SerializeField] private int _currentPage = 0;
 
@@ -41,21 +42,15 @@ public class BookObject : MonoBehaviour
         switch (type)
         {
             case PageType.LeftPage:
-                obj = _topRend;
+                obj = _topPageStackRend;
                 break;
             case PageType.RightPage:
-                obj = _bottomRend;
+                obj = _bottomPageStackRend;
                 break;
             case PageType.LeftFlip:
             case PageType.RightFlip:
             default:
                 break;
-        }
-
-        if (obj != null)
-        {
-            obj.material.SetTexture("_PaperTexture", tex);
-            Debug.Log("Set Texture");
         }
     }
 
@@ -71,6 +66,7 @@ public class BookObject : MonoBehaviour
 
         _spineWidth = (_pageThickness * _totalPages + _chaffThickness) / 2f;
 
+        UpdateBookSize();
         UpdateSpine(readProgression);
         UpdateCovers(widthOffset);
         UpdatePageStacks(widthOffset);
@@ -78,10 +74,23 @@ public class BookObject : MonoBehaviour
         UpdateOpeningMotion(progression);
     }
 
-    private void UpdateSpine(float readProgression)
+    private void UpdateBookSize()
     {
         _spine.localScale = new Vector3(_bookSize.y + _spineSizeMargin, _chaffThickness + _spineSizeMargin, _spineWidth * 2f);
+        _topCover.localScale = _bottomCover.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
 
+        float planeFactor = 10;
+        _bottomFlipPageParent.localScale = _topFlipPageParent.localScale = new Vector3(_bookSize.y / planeFactor, _chaffThickness / planeFactor, (_bookSize.x - _chaffThickness) / planeFactor);
+
+        _bottomPageStack.localScale = new Vector3(_bookSize.y, GetRightPageStackHeight(), _bookSize.x - _chaffThickness);
+        _topPageStack.localScale = new Vector3(_bookSize.y, GetLeftPageStackHeight(), _bookSize.x - _chaffThickness);
+    }
+
+    private float GetLeftPageStackHeight() => _pageThickness * _currentPage;
+    private float GetRightPageStackHeight() => _pageThickness * (_totalPages - _currentPage);
+
+    private void UpdateSpine(float readProgression)
+    {
         // Interpolate between closed and progression tilt
         float targetXRotation = Mathf.Lerp(-90f, 90f * readProgression, _openPercentage);
         _spine.localRotation = Quaternion.Euler(targetXRotation, 0f, 0f);
@@ -91,9 +100,6 @@ public class BookObject : MonoBehaviour
 
     private void UpdateCovers(float widthOffset)
     {
-        _topCover.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
-        _bottomCover.localScale = new Vector3(_bookSize.y, _chaffThickness, _bookSize.x);
-
         _topCover.localPosition = new Vector3(0f, 0f, widthOffset);
         _topPivit.position = _spine_left_pivit.position;
 
@@ -103,38 +109,42 @@ public class BookObject : MonoBehaviour
 
     private void UpdatePageStacks(float widthOffset)
     {
-        float rightHeight = _pageThickness * (_totalPages - _currentPage);
-        _bottomPages.localScale = new Vector3(_bookSize.y, rightHeight, _bookSize.x - _chaffThickness);
-        _bottomPages.localPosition = new Vector3(0f, rightHeight / 2f + _chaffThickness / 2f, widthOffset);
-        _bottomRend.enabled = _currentPage != _totalPages;
+        _bottomPageStack.localPosition = new Vector3(0f, GetRightPageStackHeight() / 2f + _chaffThickness / 2f, widthOffset);
+        _bottomPageStackRend.enabled = _currentPage != _totalPages;
 
-        float leftHeight = _pageThickness * _currentPage;
-        _topPages.localScale = new Vector3(_bookSize.y, leftHeight, _bookSize.x - _chaffThickness);
-        _topPages.localPosition = new Vector3(0f, -leftHeight / 2f - _chaffThickness / 2f, widthOffset);
-        _topRend.enabled = _currentPage != 0;
+        _topPageStack.localPosition = new Vector3(0f, -GetLeftPageStackHeight() / 2f - _chaffThickness / 2f, widthOffset);
+        _topPageStackRend.enabled = _currentPage != 0;
     }
 
     private void UpdateFlipPage(float positionZ)
     {
-        _flipPaper.localPosition = new Vector3(0f, 0f, positionZ);
+        float yOffset = 0.001f;
+
+        Vector3 bottom_tracker = _bottomFlipPagePivitTracker.position;
+        bottom_tracker.y += yOffset;
+        _bottomFlipPageParent.position = bottom_tracker;
+
+        Vector3 top_tracker = _topFlipPagePivitTracker.position;
+        top_tracker.y += yOffset;
+        _topFlipPageParent.position = top_tracker;
     }
 
     private void UpdateOpeningMotion(float pageProgression)
     {
         if (_currentPage <= _totalPages / 2)
         {
-            float xPivotLerp = Mathf.Lerp(-90f, 90f, _openPercentage - (_forceOpen ? 1f : pageProgression));
+            float xPivotLerp = Mathf.Lerp(-90f, 90f, _openPercentage - pageProgression);
             _topPivit.localRotation = Quaternion.Euler(xPivotLerp, 0f, 0f);
         }
 
-        float xLerp = Mathf.Lerp(-270f, -180f, (_forceOpen ? 1f : pageProgression) * (_openPercentage * 2f));
+        float xLerp = Mathf.Lerp(-270f, -180f, pageProgression * (_openPercentage * 2f));
         _top.localRotation = Quaternion.Euler(xLerp, 0f, 0f);
     }
 
     private void OnValidate()
     {
-        if (_bottomRend == null && _bottomPages != null) { _bottomRend = _bottomPages.GetComponent<MeshRenderer>(); }
-        if (_topRend == null && _topPages != null) { _topRend = _topPages.GetComponent<MeshRenderer>(); }
+        if (_bottomPageStackRend == null && _bottomPageStack != null) { _bottomPageStackRend = _bottomPageStack.GetComponent<MeshRenderer>(); }
+        if (_topPageStackRend == null && _topPageStack != null) { _topPageStackRend = _topPageStack.GetComponent<MeshRenderer>(); }
 
         _totalPages = Mathf.Max(1, _totalPages);
         _openPercentage = Mathf.Clamp01(_openPercentage);
