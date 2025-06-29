@@ -2,17 +2,24 @@
 ## pip install pdf2image
 ## pip install pyinstaller
 
-import sys, os
+import sys
+import os
 from pdf2image import convert_from_path
 
 def convert(pdf_path, output_dir):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    poppler_bin = os.path.join(current_dir, "poppler-24.08.0", "Library", "bin")
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
 
+    poppler_path = os.path.join(base_path, "poppler-24.08.0", "Library", "bin")
+
+    print(f"Using poppler_path: {poppler_path}")
+    
     pages = convert_from_path(
         pdf_path,
         dpi=200,
-        poppler_path=poppler_bin
+        poppler_path=poppler_path
     )
 
     os.makedirs(output_dir, exist_ok=True)

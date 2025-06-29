@@ -5,7 +5,7 @@ a = Analysis(
     ['pdf_to_img.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('poppler-24.08.0', 'poppler-24.08.0')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
