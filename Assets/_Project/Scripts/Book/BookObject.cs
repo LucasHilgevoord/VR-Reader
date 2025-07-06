@@ -14,6 +14,7 @@ public class BookObject : MonoBehaviour
     [SerializeField] private Vector2 _bookSize = new Vector2(2, 1.5f);
     [SerializeField] private float _chaffThickness = 0.025f;
     [SerializeField] private bool _disablePageWeight = true;
+    [SerializeField] private bool _isOnFlatSurface = true;
     private float _spineWidth;
     private float _spineSizeMargin = 0.001f;
 
@@ -59,16 +60,19 @@ public class BookObject : MonoBehaviour
     internal void SetCurrentPage(int page) { _currentPage = Mathf.Clamp(page, 0, _totalPages); }
     internal void SetTotalPages(int total) { _totalPages = Mathf.Max(1, total); }
 
+    private float GetReadProgression()
+    {
+        float progression = Mathf.Clamp01((float)_currentPage / _totalPages);
+        return (2f * progression) - 1f;
+    }
+
     internal void UpdateBook()
     {
         float widthOffset = -_bookSize.x / 2f;
-        float progression = Mathf.Clamp01((float)_currentPage / _totalPages);
-        float readProgression = (2f * progression) - 1f;
-
         _spineWidth = (_pageThickness * _totalPages + _chaffThickness) / 2f;
 
         UpdateBookSize();
-        UpdateSpine(readProgression);
+        UpdateSpine();
         UpdateCovers(widthOffset);
         UpdatePageStacks(widthOffset);
         UpdateFlipPage(-widthOffset);
@@ -90,14 +94,20 @@ public class BookObject : MonoBehaviour
     private float GetLeftPageStackHeight() => _pageThickness * _currentPage;
     private float GetRightPageStackHeight() => _pageThickness * (_totalPages - _currentPage);
 
-    private void UpdateSpine(float readProgression)
+    private void UpdateSpine()
     {
-        float tiltDirection = _inFirstHalf ? -1f : 1f;
-        float maxTilt = 90f;
-        float targetXRotation = Mathf.Lerp(0f, maxTilt * tiltDirection, 1f - _openPercentage);
+        if (_isOnFlatSurface) {
+            float tiltDirection = _inFirstHalf ? -1f : 1f;
+            float maxTilt = 90f;
+            float targetXRotation = Mathf.Lerp(maxTilt * GetReadProgression(), maxTilt * tiltDirection, 1f - _openPercentage);
 
-        _spine.localRotation = Quaternion.Euler(targetXRotation, 0f, 0f);
-        _spine.localPosition = new Vector3(0f, 0f, _spineWidth * readProgression);
+            _spine.localRotation = Quaternion.Euler(targetXRotation, 0f, 0f);
+            _spine.localPosition = new Vector3(0f, 0f, _spineWidth);
+        } else
+        {
+            _spine.localRotation = Quaternion.identity;
+            _spine.localPosition = new Vector3(0f, 0f, 0f);
+        }
     }
 
     private void UpdateCovers(float widthOffset)
@@ -136,23 +146,30 @@ public class BookObject : MonoBehaviour
 
     private void UpdateOpeningMotion()
     {
-        float halfPoint = _totalPages / 2f;
-        float pivotLerp = (_inFirstHalf ? _openPercentage : (1f - _openPercentage));
-        float pivotAngle = Mathf.Lerp(0f, 180f, pivotLerp);
+        if (_isOnFlatSurface)
+        {
+            float halfPoint = _totalPages / 2f;
+            float pivotLerp = (_inFirstHalf ? _openPercentage : 1f - _openPercentage);
+            float pivotAngle = Mathf.Lerp(0f, 180f, pivotLerp);
+            if (_inFirstHalf)
+            {
+                _topPivit.localRotation = Quaternion.Euler(pivotAngle, 0f, 0f);
+                _bottomPivit.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                _topPivit.localRotation = Quaternion.Euler(180f, 0f, 0f);
+                _bottomPivit.localRotation = Quaternion.Euler(pivotAngle, 0f, 0f);
+            }
+        } else
+        {
+            float topPivotAngle = Mathf.Lerp(90f, 180f, _openPercentage);
+            _topPivit.localRotation = Quaternion.Euler(topPivotAngle, 0f, 0f);
 
-        if (_inFirstHalf)
-        {
-            _topPivit.localRotation = Quaternion.Euler(pivotAngle, 0f, 0f);
-            _bottomPivit.localRotation = Quaternion.identity;
-        }
-        else
-        {
-            _topPivit.localRotation = Quaternion.Euler(180f, 0f, 0f);
-            _bottomPivit.localRotation = Quaternion.Euler(pivotAngle, 0f, 0f);
+            float botPivotAngle = Mathf.Lerp(0f, 90f, 1f - _openPercentage);
+            _bottomPivit.localRotation = Quaternion.Euler(botPivotAngle, 0f, 0f);
         }
     }
-
-
 
     private void OnValidate()
     {
