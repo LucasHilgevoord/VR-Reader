@@ -18,7 +18,7 @@ public class BookObject : MonoBehaviour
     private float _spineSizeMargin = 0.001f;
 
     [Header("Chaff")]
-    [SerializeField] private Transform _top;
+    [SerializeField] private Transform _top, _bottom;
     [SerializeField] private Transform _bottomPivit, _topPivit, _flipPivit;
     [SerializeField] private Transform _topCover, _bottomCover;
     [SerializeField] private Transform _spine, _spine_left_pivit, _spine_right_pivit;
@@ -35,6 +35,7 @@ public class BookObject : MonoBehaviour
     [SerializeField] private float _openPercentage = 0f;
     [SerializeField] private int _totalPages = 100;
     [SerializeField] private int _currentPage = 0;
+    bool _inFirstHalf { get { return _currentPage <= _totalPages / 2; }}
 
     internal void SetPageTexture(PageType type, Texture2D tex)
     {
@@ -71,7 +72,7 @@ public class BookObject : MonoBehaviour
         UpdateCovers(widthOffset);
         UpdatePageStacks(widthOffset);
         UpdateFlipPage(-widthOffset);
-        UpdateOpeningMotion(progression);
+        UpdateOpeningMotion();
     }
 
     private void UpdateBookSize()
@@ -91,10 +92,11 @@ public class BookObject : MonoBehaviour
 
     private void UpdateSpine(float readProgression)
     {
-        // Interpolate between closed and progression tilt
-        float targetXRotation = Mathf.Lerp(-90f, 90f * readProgression, _openPercentage);
-        _spine.localRotation = Quaternion.Euler(targetXRotation, 0f, 0f);
+        float tiltDirection = _inFirstHalf ? -1f : 1f;
+        float maxTilt = 90f;
+        float targetXRotation = Mathf.Lerp(0f, maxTilt * tiltDirection, 1f - _openPercentage);
 
+        _spine.localRotation = Quaternion.Euler(targetXRotation, 0f, 0f);
         _spine.localPosition = new Vector3(0f, 0f, _spineWidth * readProgression);
     }
 
@@ -127,19 +129,30 @@ public class BookObject : MonoBehaviour
         Vector3 top_tracker = _topFlipPagePivitTracker.position;
         top_tracker.y += yOffset;
         _topFlipPageParent.position = top_tracker;
+
+        _topFlipPageParent.gameObject.SetActive(_currentPage != 0);
+        _bottomFlipPageParent.gameObject.SetActive(_currentPage != _totalPages);
     }
 
-    private void UpdateOpeningMotion(float pageProgression)
+    private void UpdateOpeningMotion()
     {
-        if (_currentPage <= _totalPages / 2)
-        {
-            float xPivotLerp = Mathf.Lerp(-90f, 90f, _openPercentage - pageProgression);
-            _topPivit.localRotation = Quaternion.Euler(xPivotLerp, 0f, 0f);
-        }
+        float halfPoint = _totalPages / 2f;
+        float pivotLerp = (_inFirstHalf ? _openPercentage : (1f - _openPercentage));
+        float pivotAngle = Mathf.Lerp(0f, 180f, pivotLerp);
 
-        float xLerp = Mathf.Lerp(-270f, -180f, pageProgression * (_openPercentage * 2f));
-        _top.localRotation = Quaternion.Euler(xLerp, 0f, 0f);
+        if (_inFirstHalf)
+        {
+            _topPivit.localRotation = Quaternion.Euler(pivotAngle, 0f, 0f);
+            _bottomPivit.localRotation = Quaternion.identity;
+        }
+        else
+        {
+            _topPivit.localRotation = Quaternion.Euler(180f, 0f, 0f);
+            _bottomPivit.localRotation = Quaternion.Euler(pivotAngle, 0f, 0f);
+        }
     }
+
+
 
     private void OnValidate()
     {
